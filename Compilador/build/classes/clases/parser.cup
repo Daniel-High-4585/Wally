@@ -1,0 +1,1539 @@
+package clases;
+import java_cup.runtime.*;
+import java.util.LinkedList;
+import clases.Tablas;
+import clases.Identificador;
+import clases.IdValor;
+import ventanas.Editor;
+import java.util.ArrayList;
+import clases.VariablesEnsamblador;
+import ventanas.Editor;
+import ventanas.ErrorGrafo;
+
+
+//Importar el paquete y clase import ventanas.Editor;
+//-------> codigo para el parser, variables, metodos
+
+parser code{:
+    //tabla en donde se almacenan los errores
+    public static LinkedList<TError> TablaES = new LinkedList<TError>();
+    public static ArrayList<Identificador> TablaId = new ArrayList<Identificador>();
+    public static Identificador identificador = new Identificador();
+    public static int count=0;
+    //variable para guardar el lexema;
+    public static String lexema="";
+    // metodo al que se llama automaticamente ante algún error sintactico
+
+    public void syntax_error(Symbol s)
+    {
+        Editor.arrayError.add(new ErrorLink("[Error sintactico] Token  "+s.value.toString()+"  no identificado en la fila: "+(s.right+1)+", columna:"+(s.left+1)," caracter no deseado",(s.right+1),(s.left+1),s.value.toString()));
+        //Editor.setError();
+
+        /*lexema = s.value.toString();
+        int fila = s.right+1;
+        int columna = s.left+1;
+        TError datos = new TError(lexema,fila,columna,"Error Sintactico","Se esperaba otro caracter");
+        TablaES.add(datos);*/  
+  
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {
+        /*String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+
+        TError datos = new TError(lexema,fila,columna,"Error Sintactico Irr","Se esperaba otro caracter");
+        TablaES.add(datos);
+        */
+    }
+
+:}
+
+//----------------> codigo para las acciones gramaticales
+action code
+{:
+:}
+
+/*---------------2da Area: Declaraciones---------------------------*/
+
+//------------> declaración de terminales
+terminal inicio;
+terminal suma,resta,multiplicacion,division;
+terminal delimitador_izquierdo,delimitador_derecho,parentesis_abierto,parentesis_cerrado;
+terminal separador,punto,fin_linea;
+terminal si,sino,mientras;
+terminal String igual,diferente_que,mayor_igual_que,igual_que,menor_que,mayor_que,menor_igual_que;
+terminal encenderVSort,apagarVSort,avanzar,reversa,girarIzquierda,girarDerecha,subirBase,bajarBase,avanzarRueda,espera;
+terminal rueda,sensorProximidad,base,funcion,Operacion;
+terminal String reservada, Metodo, Numero, Cadena, Identificador, Clase, presentacion;
+
+//------------> declaracion de no terminales
+
+non terminal INICIO,declaraciones,asignacion,definiciones,main,expresiones,ciclo,
+                condicion_si,condicion,operador_logico,control_si,control_sino,control_mientras,cuerpo,funcion_principal;
+non terminal metodo,metodo_definicion,metodo_llamada;
+non terminal variable_def,variables_def,asignacion_def;
+non terminal variable,variables,sentencia,sentencias ;
+non terminal cuerpo_parametro,mencenderVSort,mapagarVSort,mavanzarCon,mavanzarSin,mreversaCon,mreversaSin,mgirarIzquierda,mgirarDerecha,msubirBase,mbajarBase,mavanzarRueda,mespera;
+non terminal parametros;
+non terminal defRueda,defBase,defSensor;
+//------------> precedencia de menor a mayor
+//precedence left suma,resta;
+//precedence left multiplicacion,division
+
+start with INICIO;
+
+INICIO ::= reservada Clase delimitador_izquierdo declaraciones main delimitador_derecho
+{:
+    Generador.gc(Generador.FIN,null,null,null); 
+:} 
+|error declaraciones
+|error main
+;
+
+declaraciones ::= variables_def definiciones|
+                  definiciones variables_def |
+                  definiciones 
+|error variables_def
+|error definiciones
+;
+
+definiciones  ::= defRueda defBase defSensor 
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defRueda defSensor defBase 
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defBase defSensor defRueda {:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defBase defRueda defSensor {:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defSensor defRueda defBase 
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defSensor defBase defRueda 
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defBase defRueda
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|
+defRueda defBase
+{:
+Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
+Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+:}
+|error fin_linea
+|error main
+;
+
+
+main ::= inicio delimitador_izquierdo cuerpo delimitador_derecho
+{:
+    Generador.gc(Generador.MAIN,null,null,null);
+:}
+;
+
+//VARIABLES DEFINICIONES
+// =================================================
+variables_def ::= variables_def variable_def | variable_def
+;
+//==================================================
+
+
+
+//==============================================================================
+variable_def ::= Identificador:id fin_linea 
+                {:  
+                    //Tablas.addIdentificador();
+                    //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+                    Identificador identificador = new Identificador(id,"variable","definicion","null");
+                    System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+                    IdValor valor=new IdValor(id,-1,"definicion");
+                    VariablesEnsamblador.variables.add(valor);
+                    sintactico.TablaId.add(identificador);   
+                :}
+            | asignacion_def
+|error Identificador
+; 
+//==============================================================================
+
+//Expresiones
+//==============================================================================
+
+expresiones ::= Numero:op1 suma Numero:op2
+{: 
+    String t=Generador.nuevaTemp();
+    String resultado=(Integer.parseInt(op1)+Integer.parseInt(op2))+"";
+    Generador.gc(Generador.MAS, resultado, null,t);
+    VariablesEnsamblador.last=Integer.parseInt(resultado);
+:}
+|
+Numero:op1 resta Numero:op2 {: 
+    String t=Generador.nuevaTemp();
+    String resultado=(Integer.parseInt(op1)-Integer.parseInt(op2))+"";
+    Generador.gc(Generador.MENOS, resultado, null,t);
+    VariablesEnsamblador.last=Integer.parseInt(resultado);
+:}
+|
+Numero:op1 multiplicacion Numero:op2 {: 
+    String t=Generador.nuevaTemp();
+    String resultado=(Integer.parseInt(op1)*Integer.parseInt(op2))+"";
+    Generador.gc(Generador.POR, resultado, null,t);
+    VariablesEnsamblador.last=Integer.parseInt(resultado);
+:}
+|
+Numero:op1 division Numero:op2 {: 
+    String t=Generador.nuevaTemp();
+    String resultado=(Integer.parseInt(op1)/Integer.parseInt(op2))+"";
+    Generador.gc(Generador.DIV, resultado, null,t);
+    VariablesEnsamblador.last=Integer.parseInt(resultado);
+:}
+|
+Identificador:id1 suma Numero:op2
+{: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor+Integer.parseInt(op2))+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MAS, id1,op2,t);
+:}
+|
+Identificador:id1 resta Numero:op2 
+{: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor-Integer.parseInt(op2))+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));        
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MENOS, id1,op2,t);
+:}
+|
+Identificador:id1 multiplicacion Numero:op2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor*Integer.parseInt(op2))+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.POR, id1,op2,t);
+:}
+|
+Identificador:id1 division Numero:op2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor/Integer.parseInt(op2))+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.DIV, id1,op2,t);
+:}
+|
+//********************************************
+Numero:op1 suma Identificador:id2
+{: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null){
+        String resultado=(Integer.parseInt(op1)+valor.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MAS, op1,id2,t);
+:}
+|
+Numero:op1 resta Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null){
+        String resultado=(Integer.parseInt(op1)-valor.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MENOS, op1,id2,t);
+:}
+|
+Numero:op1 multiplicacion Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null){
+        String resultado=(Integer.parseInt(op1)*valor.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.POR, op1,id2,t);
+:}
+|
+Numero:op1 division Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null){
+        String resultado=(Integer.parseInt(op1)/valor.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.DIV, op1,id2,t);
+:}
+//********************************************
+|
+Identificador:id resta resta {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id,"variable","asignacion","null");
+    IdValor valor=VariablesEnsamblador.buscar(id,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor-1)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id+" no ha sido declarada.","columna:"+(idleft+1)+", fila:"+(idright+1),(idright+1),(idleft+1),id));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MENOS, id,"1",id);
+:}
+|
+Identificador:id suma suma {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id,"variable","asignacion","null");
+    IdValor valor=VariablesEnsamblador.buscar(id,"asignacion");
+    if(valor!=null){
+        String resultado=(valor.valor+1)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id+" no ha sido declarada.","columna:"+(idleft+1)+", fila:"+(idright+1),(idright+1),(idleft+1),id));
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    sintactico.TablaId.add(identificador);   
+    Generador.gc(Generador.MAS, id,"1",id);
+:}
+|
+Identificador:id1 suma Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    Identificador identificador2 = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    IdValor valor2=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null&&valor2!=null){
+        String resultado=(valor.valor+valor2.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        if(valor==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));           
+        }
+        if(valor2==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2)); 
+        }
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    VariablesEnsamblador.variables.add(valor2);
+    sintactico.TablaId.add(identificador);   
+    sintactico.TablaId.add(identificador2);   
+    Generador.gc(Generador.MAS, id1,id2,t);
+:}
+|
+Identificador:id1 resta Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    Identificador identificador2 = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    IdValor valor2=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null&&valor2!=null){
+        String resultado=(valor.valor-valor2.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        if(valor==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));           
+        }
+        if(valor2==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2)); 
+        }
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    VariablesEnsamblador.variables.add(valor2);
+    sintactico.TablaId.add(identificador);   
+    sintactico.TablaId.add(identificador2);   
+    Generador.gc(Generador.MENOS, id1,id2,t);
+:}
+|
+Identificador:id1 multiplicacion Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    Identificador identificador2 = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    IdValor valor2=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null&&valor2!=null){
+        String resultado=(valor.valor*valor2.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        if(valor==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));           
+        }
+        if(valor2==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2)); 
+        }
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    VariablesEnsamblador.variables.add(valor2);
+    sintactico.TablaId.add(identificador);   
+    sintactico.TablaId.add(identificador2);   
+    Generador.gc(Generador.POR, id1,id2,t);
+:}
+|
+Identificador:id1 division Identificador:id2 {: 
+    String t=Generador.nuevaTemp();
+    Identificador identificador = new Identificador(id1,"variable","llamada","null");
+    Identificador identificador2 = new Identificador(id2,"variable","llamada","null");
+    IdValor valor=VariablesEnsamblador.buscar(id1,"asignacion");
+    IdValor valor2=VariablesEnsamblador.buscar(id2,"asignacion");
+    if(valor!=null&&valor2!=null){
+        String resultado=(valor.valor/valor2.valor)+"";
+        VariablesEnsamblador.last=Integer.parseInt(resultado);
+    }else{
+        if(valor==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no ha sido declarada.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));           
+        }
+        if(valor2==null){
+            Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id2+" no ha sido declarada.","columna:"+(id2left+1)+", fila:"+(id2right+1),(id2right+1),(id2left+1),id2)); 
+        }
+        Editor.errores++;
+    }
+    VariablesEnsamblador.variables.add(valor);
+    VariablesEnsamblador.variables.add(valor2);
+    sintactico.TablaId.add(identificador);   
+    sintactico.TablaId.add(identificador2);   
+    Generador.gc(Generador.DIV, id1,id2,t);
+:}
+|error Numero
+|error Identificador
+|error fin_linea
+;
+
+//==============================================================================
+
+//-------------ASIGNACIÓN
+//==============================================================================
+asignacion_def ::= Identificador:id igual Numero:n fin_linea 
+{:  
+    
+
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        System.out.println("Entre por palabra si="+VariablesEnsamblador.palabra_si+" Respuesta="+VariablesEnsamblador.respuesta_si+" y el si esta en:" +VariablesEnsamblador.si_activado+" Valor: "+n);
+        Identificador identificador = new Identificador(id,"variable","asignacion",n);
+        IdValor valor=new IdValor(id,Integer.parseInt(n),"asignacion");
+        VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+        sintactico.TablaId.add(identificador);   
+    }
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            System.out.println("Entre por palabra si="+VariablesEnsamblador.palabra_si+" Respuesta="+VariablesEnsamblador.respuesta_si+"Valor: "+n);
+            Identificador identificador = new Identificador(id,"variable","asignacion",n);
+            IdValor valor=new IdValor(id,Integer.parseInt(n),"asignacion");
+            VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+            sintactico.TablaId.add(identificador); 
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            System.out.println("Entre por palabra si="+VariablesEnsamblador.palabra_si+" Respuesta="+VariablesEnsamblador.respuesta_si+"Valor: "+n);
+            Identificador identificador = new Identificador(id,"variable","asignacion",n);
+            IdValor valor=new IdValor(id,Integer.parseInt(n),"asignacion");
+            VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+            sintactico.TablaId.add(identificador); 
+        }
+    }
+        if(VariablesEnsamblador.mientras_activado!=0){
+            //WHILE
+        }
+/*       ErrorGrafo.tipo_error=1;
+       ErrorGrafo e=new ErrorGrafo();
+       e.setVisible(true); 
+*/
+:}
+| 
+Identificador:id1 igual Cadena:n fin_linea
+{:
+   Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no permite cadenas de texto solo números.","columna:"+(nleft+1)+", fila:"+(nright+1),(nright+1),(nleft+1),n));
+   Editor.errores++;
+/*
+   ErrorGrafo.tipo_error=2;
+   ErrorGrafo e=new ErrorGrafo();
+   e.setVisible(true); 
+*/
+:}
+| 
+Identificador:id igual expresiones fin_linea
+{:
+    System.out.println("Entre por palabra si="+VariablesEnsamblador.palabra_si+" Respuesta="+VariablesEnsamblador.respuesta_si+" y el si esta en:" +VariablesEnsamblador.si_activado+" Valor: "+VariablesEnsamblador.last);
+    Identificador identificador = new Identificador(id,"variable","asignacion",""+VariablesEnsamblador.last);
+    IdValor valor=new IdValor(id,VariablesEnsamblador.last,"asignacion");
+    VariablesEnsamblador.asignar(id,VariablesEnsamblador.last);
+    sintactico.TablaId.add(identificador);   
+:}
+|error Numero
+{:
+/*
+   ErrorGrafo.tipo_error=3;
+   ErrorGrafo e=new ErrorGrafo();
+   e.setVisible(true); 
+*/
+:}
+|error igual
+{:
+/*
+   ErrorGrafo.tipo_error=4;
+   ErrorGrafo e=new ErrorGrafo();
+   e.setVisible(true); 
+*/
+:}
+|
+Identificador:id1 igual Numero:n 
+{:
+   Editor.arrayError.add(new ErrorLink("[Error sintactico] Token ; faltante","columna:"+(nleft+1)+", fila:"+(nright+1),(nright+1),(nleft+1),n));   
+   Editor.errores++;
+:} //Caso falso numero 4
+;
+//==============================================================================
+
+//===========================================
+//VARIABLES LLAMADA
+// =================================================
+variables ::= variables variable | variable;
+//==================================================
+
+
+
+//==============================================================================
+variable ::= Identificador:id 
+        {:  
+            //Tablas.addIdentificador();
+            //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+            Identificador identificador = new Identificador(id,"variable","llamada","null");
+            System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+            sintactico.TablaId.add(identificador);
+  
+        :}
+        |Identificador:id fin_linea
+        {:  
+            //Tablas.addIdentificador();
+            //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+            Identificador identificador = new Identificador(id,"variable","llamada","null");
+            System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+            sintactico.TablaId.add(identificador);   
+        :}
+            | asignacion
+            |error Identificador
+; 
+//==============================================================================
+
+
+                                                                                //-------------ASIGNACIÓN
+//==============================================================================
+asignacion ::= Identificador:id igual Numero:n fin_linea 
+    {:  
+        javax.swing.JOptionPane.showMessageDialog(null,"Entre!");
+        if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+            Identificador identificador = new Identificador(id,"variable","asignacion",n);
+            IdValor iv=new IdValor(id,Integer.parseInt(n),"asignacion");
+            VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+            System.out.println("  "+identificador.lexema+" "+identificador.tipo+" "+identificador.valor);
+            sintactico.TablaId.add(identificador); 
+        }
+        if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                Identificador identificador = new Identificador(id,"variable","asignacion",n);
+                IdValor iv=new IdValor(id,Integer.parseInt(n),"asignacion");
+                VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+                System.out.println("  "+identificador.lexema+" "+identificador.tipo+" "+identificador.valor);
+                sintactico.TablaId.add(identificador);
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                Identificador identificador = new Identificador(id,"variable","asignacion",n);
+                IdValor iv=new IdValor(id,Integer.parseInt(n),"asignacion");
+                VariablesEnsamblador.asignar(id,Integer.parseInt(n));
+                System.out.println("  "+identificador.lexema+" "+identificador.tipo+" "+identificador.valor);
+                sintactico.TablaId.add(identificador);
+            }
+        }
+        if(VariablesEnsamblador.mientras_activado!=0){
+             //WHILE
+        }
+/*
+       ErrorGrafo.tipo_error=1;
+       ErrorGrafo e=new ErrorGrafo();
+       e.setVisible(true); 
+*/
+    :}
+    | Identificador:id igual variable:v 
+    {:  
+        if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+            Identificador identificador = new Identificador(id,"variable","asignacion",null);
+            System.out.println("  "+identificador.lexema+" "+identificador.tipo);
+            sintactico.TablaId.add(identificador);
+        }
+        if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                Identificador identificador = new Identificador(id,"variable","asignacion",null);
+                System.out.println("  "+identificador.lexema+" "+identificador.tipo);
+                sintactico.TablaId.add(identificador);
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                Identificador identificador = new Identificador(id,"variable","asignacion",null);
+                System.out.println("  "+identificador.lexema+" "+identificador.tipo);
+                sintactico.TablaId.add(identificador);
+            }
+        }
+        if(VariablesEnsamblador.mientras_activado!=0){
+             //WHILE
+        } 
+
+    :}
+    | Identificador:id igual expresiones fin_linea
+    {:
+        if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+            IdValor valor=new IdValor(id,VariablesEnsamblador.last,"asignacion");
+            System.out.println("  "+VariablesEnsamblador.last);
+            Identificador identificador = new Identificador(id,"variable","asignacion",VariablesEnsamblador.last+"");
+            VariablesEnsamblador.asignar(id,VariablesEnsamblador.last);
+            //VariablesEnsamblador.variables.add(valor);
+            sintactico.TablaId.add(identificador);   
+        }
+        if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                IdValor valor=new IdValor(id,VariablesEnsamblador.last,"asignacion");
+                System.out.println("  "+VariablesEnsamblador.last);
+                VariablesEnsamblador.asignar(id,VariablesEnsamblador.last);
+                //VariablesEnsamblador.variables.add(valor);
+                Identificador identificador = new Identificador(id,"variable","asignacion",VariablesEnsamblador.last+"");
+                sintactico.TablaId.add(identificador);   
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                IdValor valor=new IdValor(id,VariablesEnsamblador.last,"asignacion");
+                System.out.println("  "+VariablesEnsamblador.last);
+                VariablesEnsamblador.asignar(id,VariablesEnsamblador.last);
+                Identificador identificador = new Identificador(id,"variable","asignacion",VariablesEnsamblador.last+"");
+                //VariablesEnsamblador.variables.add(valor);
+                sintactico.TablaId.add(identificador);   
+            }
+        }
+        if(VariablesEnsamblador.mientras_activado!=0){
+             //WHILE
+        } 
+                
+    :}
+
+|error fin_linea{:
+/*
+   ErrorGrafo.tipo_error=5;
+   ErrorGrafo e=new ErrorGrafo();
+   e.setVisible(true); 
+*/
+:}
+
+;
+//==============================================================================
+
+//-------------DEFINICIÓN METODO
+//==============================================================================
+metodo_definicion ::=funcion Identificador:id parentesis_abierto parentesis_cerrado delimitador_izquierdo cuerpo delimitador_derecho
+                        {:  
+                            //Tablas.addIdentificador();
+                            //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+                            Identificador identificador = new Identificador(id,"metodo","definicion","null");
+                            System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+                            sintactico.TablaId.add(identificador);
+                        :}
+                    |funcion Identificador:id parentesis_abierto parentesis_cerrado delimitador_izquierdo delimitador_derecho
+                        {:  
+                            //Tablas.addIdentificador();
+                            //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+                            Identificador identificador = new Identificador(id,"metodo","definicion","null");
+                            System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+                            sintactico.TablaId.add(identificador);
+                        :}
+|error Identificador
+|error parentesis_abierto
+|error parentesis_cerrado 
+|error delimitador_izquierdo
+|error delimitador_derecho
+;
+//==============================================================================
+
+
+
+//==============================================================================
+metodo_llamada ::= Identificador:id parentesis_abierto parentesis_cerrado fin_linea
+                        {:  
+                            Identificador identificador = new Identificador(id,"metodo","llamada","null");
+                            System.out.println(" "+identificador.lexema+" "+identificador.tipo);
+                            sintactico.TablaId.add(identificador);
+                        :}
+                    |funcion_principal parentesis_abierto parentesis_cerrado fin_linea
+|error sentencia
+;
+//==============================================================================
+
+
+
+//==============================================================================
+cuerpo ::= sentencias{:
+
+:};
+//==============================================================================
+
+//==============================================================================
+sentencias ::= sentencias sentencia | sentencia
+
+;
+//==============================================================================
+
+cuerpo_parametro ::= parametros Identificador:id
+| 
+Identificador:id1
+{:
+    IdValor aux=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(aux==null){
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no tiene valor asignado.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }else{
+        VariablesEnsamblador.last=aux.valor;
+    }    
+:}
+|
+Numero:n{:
+    VariablesEnsamblador.last=Integer.parseInt(n);
+:}
+|
+expresiones
+|error sentencia
+;
+
+parametros ::= Identificador:id1 separador
+{:
+    IdValor aux=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(aux==null){
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no tiene valor asignado.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }else{
+        VariablesEnsamblador.last=aux.valor;
+    }    
+:}
+|
+ Numero:n separador
+{:
+    VariablesEnsamblador.last=Integer.parseInt(n);
+:}
+|
+Identificador:id1
+{:
+    IdValor aux=VariablesEnsamblador.buscar(id1,"asignacion");
+    if(aux==null){
+        Editor.arrayError.add(new ErrorLink("[Error semantico] La variable "+id1+" no tiene valor asignado.","columna:"+(id1left+1)+", fila:"+(id1right+1),(id1right+1),(id1left+1),id1));
+        Editor.errores++;
+    }else{
+        VariablesEnsamblador.last=aux.valor;
+    }    
+:}
+|
+Numero:n{:
+    VariablesEnsamblador.last=Integer.parseInt(n);
+:}
+|error sentencia
+;
+
+//==============================================================================
+sentencia ::= metodo_definicion | metodo_llamada | asignacion | control_mientras | control_si|funcion_principal;
+//==============================================================================
+
+
+funcion_principal ::= mencenderVSort|mapagarVSort|mespera|mavanzarSin|mavanzarCon|mreversaSin|mreversaCon|mgirarIzquierda|mgirarDerecha|msubirBase|mbajarBase|mavanzarRueda
+;
+
+mencenderVSort ::= encenderVSort parentesis_abierto parentesis_cerrado fin_linea 
+{:
+/*
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add(";call encender");
+
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        VariablesEnsamblador.llamadas_si.add(";call encender");
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("EncenderVSort","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.encender==0){
+        Generador.gc(Generador.ENCENDER,null, null, VariablesEnsamblador.varSi);
+    }
+*/
+:}
+; 
+
+mapagarVSort ::= apagarVSort parentesis_abierto parentesis_cerrado fin_linea {: 
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        System.out.println("Palabra SI: "+VariablesEnsamblador.palabra_si+" Respuesta: "+VariablesEnsamblador.respuesta_si);
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+        }
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+
+    Identificador identificador = new Identificador("ApagarVSort","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+:};
+
+mespera ::= espera parentesis_abierto parentesis_cerrado fin_linea {: 
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call espera");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call espera");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call espera");
+        }
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("Espera","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+
+:};
+
+mavanzarSin ::= avanzar parentesis_abierto parentesis_cerrado fin_linea {:
+
+if(Editor.estructura_si>0)
+                        {
+                            Editor.elementosPila.add("cuerpo");   
+                        }
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call avanzar");
+    }
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call avanzar");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call avanzar");
+        }
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("Avanzar","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.avanzar==0){
+        Generador.gc(Generador.AVANZAR,null,null,null);
+        Editor.avanzar++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+  :};
+
+mavanzarCon ::= avanzar parentesis_abierto cuerpo_parametro parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call avanzar");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call avanzar");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call avanzar");
+        }
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("Avanzar","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.avanzar==0){
+        Generador.gc(Generador.AVANZAR_CASILLAS,VariablesEnsamblador.last+"",null,null);
+        Editor.avanzar++;
+    }
+    for(int i=0;i<VariablesEnsamblador.last;i++){
+        if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+            VariablesEnsamblador.llamadas.add("call espera");
+        }   
+        if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                VariablesEnsamblador.llamadas_si.add("call espera");
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                VariablesEnsamblador.llamadas_si.add("call espera");
+            }      
+        }
+        if(VariablesEnsamblador.mientras_activado!=0){
+            //WHILE
+        }
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+:}; //Parametros
+
+mreversaSin ::= reversa parentesis_abierto parentesis_cerrado fin_linea {: 
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call reversa");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call reversa");
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call reversa");
+            }      
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("Reversa","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.reversa==0){
+        Generador.gc(Generador.REVERSA,null,null,null);
+        Editor.reversa++;
+    }
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+:};
+
+mreversaCon ::= reversa parentesis_abierto cuerpo_parametro parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call reversa");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call reversa");
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call reversa");
+            }      
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("Reversa","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.reversa==0){
+        Generador.gc(Generador.REVERSA_CASILLAS,VariablesEnsamblador.last+"",null,null);
+        Editor.reversa++;
+    }   
+    for(int i=0;i<VariablesEnsamblador.last;i++){
+        if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+            VariablesEnsamblador.llamadas.add("call espera");
+        }   
+        if(VariablesEnsamblador.si_activado!=0){
+            VariablesEnsamblador.llamadas_si.add("call espera");
+        }
+        if(VariablesEnsamblador.mientras_activado!=0){
+            //WHILE
+        }
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+:};
+mgirarIzquierda ::= girarIzquierda parentesis_abierto parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call izquierda");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+            if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call izquierda");
+            }
+            if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+                VariablesEnsamblador.llamadas_si.add("call apagar");
+                VariablesEnsamblador.llamadas_si.add("call espera");
+                VariablesEnsamblador.llamadas_si.add("call izquierda");
+            } 
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("GirarIzquierda","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+    if(Editor.girarI==0){
+        Generador.gc(Generador.GIRAR_IZQUIERDA,null,null,null);
+        Editor.girarI++;
+    }
+:};
+
+mgirarDerecha ::= girarDerecha parentesis_abierto parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call derecha");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call derecha");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call derecha");
+        } 
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("GirarDerecha","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.girarD==0){
+        Generador.gc(Generador.GIRAR_DERECHA,null,null,null);
+        Editor.girarD++;
+    }
+ :};
+
+msubirBase ::= subirBase parentesis_abierto parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call baseup");
+        VariablesEnsamblador.llamadas.add("call retardoSB");
+        VariablesEnsamblador.llamadas.add("call apagarbase");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call baseup");
+            VariablesEnsamblador.llamadas_si.add("call retardoSB");
+            VariablesEnsamblador.llamadas_si.add("call apagarbase");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call baseup");
+            VariablesEnsamblador.llamadas_si.add("call retardoSB");
+            VariablesEnsamblador.llamadas_si.add("call apagarbase");
+        } 
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("SubirBase","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.subir==0){
+        Generador.gc(Generador.SUBIR_BASE,null,null,null);
+        Editor.subir++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+:};
+
+mbajarBase ::= bajarBase parentesis_abierto parentesis_cerrado fin_linea {:
+    if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
+        VariablesEnsamblador.llamadas.add("call apagar");
+        VariablesEnsamblador.llamadas.add("call espera");
+        VariablesEnsamblador.llamadas.add("call basedown");
+        VariablesEnsamblador.llamadas.add("call retardoBB");
+        VariablesEnsamblador.llamadas.add("call apagarbase");
+    }   
+    if(VariablesEnsamblador.si_activado!=0){
+        if(VariablesEnsamblador.palabra_si&&VariablesEnsamblador.respuesta_si){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call basedown");
+            VariablesEnsamblador.llamadas_si.add("call retardoSB");
+            VariablesEnsamblador.llamadas_si.add("call apagarbase");
+        }
+        if(VariablesEnsamblador.palabra_si==false&&VariablesEnsamblador.respuesta_si==false){
+            VariablesEnsamblador.llamadas_si.add("call apagar");
+            VariablesEnsamblador.llamadas_si.add("call espera");
+            VariablesEnsamblador.llamadas_si.add("call basedown");
+            VariablesEnsamblador.llamadas_si.add("call retardoSB");
+            VariablesEnsamblador.llamadas_si.add("call apagarbase");
+        } 
+
+    }
+    if(VariablesEnsamblador.mientras_activado!=0){
+        //WHILE
+    }
+    Identificador identificador = new Identificador("BajarBase","palabra_reservada","llamada","null");
+    sintactico.TablaId.add(identificador);
+    if(Editor.espera==0){
+        Generador.gc(Generador.ESPERA,null,null,null);
+        Editor.espera++;
+    }
+    if(Editor.bajar==0){
+        Generador.gc(Generador.BAJAR_BASE,null,null,null);
+        Editor.bajar++;
+    }
+    if(Editor.apagar==0){
+        Generador.gc(Generador.APAGAR,null,null,null); 
+        Editor.apagar++;
+    }
+:};
+
+mavanzarRueda ::= Identificador punto avanzarRueda parentesis_abierto cuerpo_parametro parentesis_cerrado fin_linea {: Generador.gc(Generador.AVANZAR_RUEDA,null,null,null);:}; //Parametros
+
+//==============================================================================
+defRueda ::= rueda Identificador:id1 separador Identificador:id2 separador Identificador:id3 separador Identificador:id4 fin_linea
+{:
+    Identificador identificador1 = new Identificador(id1,"variable","declaracion","RSD");
+    Identificador identificador2 = new Identificador(id2,"variable","declaracion","RID");
+    Identificador identificador3 = new Identificador(id3,"variable","declaracion","RII");
+    Identificador identificador4 = new Identificador(id4,"variable","declaracion","RSI");
+    sintactico.TablaId.add(identificador1);
+    sintactico.TablaId.add(identificador2);  
+    sintactico.TablaId.add(identificador3);
+    sintactico.TablaId.add(identificador4);
+    Generador.gc(Generador.DEC_RUEDAS,id1+","+id2+","+id3+","+id4,null,null);
+    VariablesEnsamblador.ruedas.add(id1);
+    VariablesEnsamblador.ruedas.add(id2);
+    VariablesEnsamblador.ruedas.add(id3);
+    VariablesEnsamblador.ruedas.add(id4);    
+    //System.out.println(VariablesEnsamblador.ruedas.size()-1);
+:}
+;
+defBase ::= base Identificador:id1 fin_linea
+{:
+    Identificador identificador1 = new Identificador(id1,"variable","declaracion","BASE");
+    sintactico.TablaId.add(identificador1);
+    Generador.gc(Generador.DEC_BASE,id1,null,null);
+    Editor.base++;
+    if(Editor.base>1){
+        //Editor.txtConsola.append("[Semantic Error] No puede haber mas de una base registrada.");
+    }
+:}
+;
+defSensor ::= sensorProximidad Identificador:id1 fin_linea
+{:
+    Identificador identificador1 = new Identificador(id1,"variable","declaracion","SENSOR_PROX");
+    sintactico.TablaId.add(identificador1);
+    Generador.gc(Generador.DEC_SENSOR_PROXIMIDAD,id1,null,null);
+:};
+//==============================================================================
+
+
+//==============================================================================
+control_si ::= si parentesis_abierto condicion_si parentesis_cerrado delimitador_izquierdo cuerpo delimitador_derecho
+{:
+
+
+    //*****************************
+    if(VariablesEnsamblador.si){
+       Generador.gc(Generador.SI,null,null,VariablesEnsamblador.varSi);
+       VariablesEnsamblador.si_activado=1;
+       VariablesEnsamblador.llamadas.add("call "+VariablesEnsamblador.varSi);
+    }
+    VariablesEnsamblador.si_activado=0;
+    VariablesEnsamblador.llamadas_si.clear();
+    //*****************************
+:}
+|
+si parentesis_abierto condicion_si parentesis_cerrado delimitador_izquierdo cuerpo delimitador_derecho control_sino
+{:
+    //*****************************
+    if(VariablesEnsamblador.si){
+       Generador.gc(Generador.SI,null,null,VariablesEnsamblador.varSi);
+       VariablesEnsamblador.si_activado=1;
+       VariablesEnsamblador.llamadas.add("call "+VariablesEnsamblador.varSi);
+    }
+    VariablesEnsamblador.si_activado=0;
+    //*****************************
+:}
+|
+si parentesis_abierto condicion_si parentesis_cerrado delimitador_izquierdo delimitador_derecho
+{:
+    //*****************************
+    if(VariablesEnsamblador.si){
+        
+    }else{
+
+    }
+    VariablesEnsamblador.si_activado=0;
+    //*****************************
+:}
+|
+si parentesis_abierto condicion_si parentesis_cerrado delimitador_izquierdo delimitador_derecho control_sino
+{:
+    //*****************************
+    if(VariablesEnsamblador.si){
+
+    }else{
+
+    }
+    VariablesEnsamblador.si_activado=0;
+    //*****************************
+:}
+|error Numero
+;
+//==============================================================================
+
+
+
+
+//==============================================================================
+control_sino ::= sino delimitador_izquierdo cuerpo delimitador_derecho
+{:
+    if(!VariablesEnsamblador.si){
+       Generador.gc(Generador.SI,null,null,VariablesEnsamblador.varSi);
+       VariablesEnsamblador.si_activado=1;
+       VariablesEnsamblador.llamadas.add("call "+VariablesEnsamblador.varSi);
+    }
+    VariablesEnsamblador.si_activado=0;
+:}
+|
+sino delimitador_izquierdo delimitador_derecho{:
+
+:}
+;
+//==============================================================================
+
+
+
+
+//==============================================================================
+condicion_si ::= 
+Identificador:id1 operador_logico:opl Identificador:id2
+{:  
+   if(Editor.estructura_si>0){
+    Editor.elementosPila.add("condicion");
+    }
+
+    IdValor aux=VariablesEnsamblador.buscar(id1,"llamada");
+    IdValor aux2=VariablesEnsamblador.buscar(id2,"llamada");
+    if(aux!=null&&aux2!=null){
+        Identificador identificador1 = new Identificador(id1,"variable","llamada",""+aux.valor);
+        Identificador identificador2 = new Identificador(id2,"variable","llamada",""+aux2.valor);
+        sintactico.TablaId.add(identificador1);
+        sintactico.TablaId.add(identificador2); 
+        if(VariablesEnsamblador.condicion(VariablesEnsamblador.opLog,aux.valor,aux2.valor)){
+            VariablesEnsamblador.si=true;
+            VariablesEnsamblador.respuesta_si=true;
+            VariablesEnsamblador.si_activado=1;
+        }else{
+            VariablesEnsamblador.si=false;
+            VariablesEnsamblador.respuesta_si=false;
+            VariablesEnsamblador.si_activado=2;
+        }
+        String t=Generador.nuevaTemp();
+        VariablesEnsamblador.varSi=t;
+        String val=aux.valor+VariablesEnsamblador.opLog+aux2.valor+","+VariablesEnsamblador.si;
+        Identificador identificadorCon=new Identificador(t,"estructura_si","definicion",val);
+        sintactico.TablaId.add(identificadorCon);
+    }
+:}
+|
+Numero:n1 operador_logico:opl Numero:n2
+{:
+    if(VariablesEnsamblador.condicion(VariablesEnsamblador.opLog,Integer.parseInt(n1),Integer.parseInt(n2))){
+        VariablesEnsamblador.si=true;
+        VariablesEnsamblador.respuesta_si=true;
+        VariablesEnsamblador.si_activado=1;
+    }else{
+        VariablesEnsamblador.respuesta_si=false;
+        VariablesEnsamblador.si=false;
+        VariablesEnsamblador.si_activado=1;
+    }
+    String t=Generador.nuevaTemp();
+    VariablesEnsamblador.varSi=t;
+    String val=n1+VariablesEnsamblador.opLog+n2+","+VariablesEnsamblador.si;
+    Identificador identificadorCon=new Identificador(t,"estructura_si","definicion",val);
+    sintactico.TablaId.add(identificadorCon);
+:}
+|
+Identificador:id operador_logico:opl Numero:n
+{:  
+    IdValor aux=VariablesEnsamblador.buscar(id,"llamada");
+    if(aux!=null){
+        Identificador identificador1 = new Identificador(id,"variable","llamada",""+aux.valor);
+        sintactico.TablaId.add(identificador1);
+        if(VariablesEnsamblador.condicion(VariablesEnsamblador.opLog,aux.valor,Integer.parseInt(n))){
+            VariablesEnsamblador.si=true;
+            VariablesEnsamblador.respuesta_si=true;
+            VariablesEnsamblador.si_activado=1;
+        }else{
+            VariablesEnsamblador.respuesta_si=false;
+            VariablesEnsamblador.si_activado=1;
+            VariablesEnsamblador.si=false;
+        }               
+        String t=Generador.nuevaTemp();
+        VariablesEnsamblador.varSi=t;
+        String val=aux.valor+VariablesEnsamblador.opLog+n+","+VariablesEnsamblador.si;
+        Identificador identificadorCon=new Identificador(t,"estructura_si","definicion",val);
+        sintactico.TablaId.add(identificadorCon);
+    }
+:}
+|
+Numero:n operador_logico:opl Identificador:id
+{:  
+    IdValor aux=VariablesEnsamblador.buscar(id,"llamada");
+    if(aux!=null){
+        Identificador identificador1 = new Identificador(id,"variable","llamada",""+aux.valor);
+        sintactico.TablaId.add(identificador1);
+        if(VariablesEnsamblador.condicion(VariablesEnsamblador.opLog,Integer.parseInt(n),aux.valor)){
+            VariablesEnsamblador.si=true;
+            VariablesEnsamblador.respuesta_si=true;
+            VariablesEnsamblador.si_activado=1;
+        }else{
+            VariablesEnsamblador.si=false;
+            VariablesEnsamblador.respuesta_si=true;
+            VariablesEnsamblador.si_activado=1;
+        }               
+        String t=Generador.nuevaTemp();
+        VariablesEnsamblador.varSi=t;
+        String val=n+VariablesEnsamblador.opLog+aux.valor+","+VariablesEnsamblador.si;
+        Identificador identificadorCon=new Identificador(t,"estructura_si","definicion",val);
+        sintactico.TablaId.add(identificadorCon);
+    }
+:}
+;
+
+//WHILE
+condicion ::= Identificador:id1 operador_logico:opl Identificador:id2
+                {:  
+                    
+                    //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null);
+                    IdValor aux=VariablesEnsamblador.buscar(id1,"llamada");
+                    IdValor aux2=VariablesEnsamblador.buscar(id2,"llamada");
+                    if(aux!=null&&aux2!=null){
+                        if(VariablesEnsamblador.condicion(VariablesEnsamblador.opLog,aux.valor,aux2.valor)){
+                        
+                        }else{
+                        
+                        } 
+                    }
+                    Identificador identificador1 = new Identificador(id1,"variable","llamada","null");
+                    Identificador identificador2 = new Identificador(id2,"variable","llamada","null");
+                    sintactico.TablaId.add(identificador1);
+                    sintactico.TablaId.add(identificador2); 
+                :}
+                |Numero operador_logico Numero
+                |Identificador:id operador_logico Numero
+                {:  
+                    //Generador.gc(Generador.NVAR, DataTabla.getLexema(), null, null); 
+                    Identificador identificador = new Identificador(id,"variable","llamada","null");
+                    sintactico.TablaId.add(identificador);  
+                :}
+                |Numero operador_logico Identificador;
+//==============================================================================
+
+
+
+
+//==============================================================================
+control_mientras ::= 
+mientras parentesis_abierto condicion parentesis_cerrado delimitador_izquierdo cuerpo delimitador_derecho
+{:
+
+:}
+|
+mientras parentesis_abierto condicion parentesis_cerrado delimitador_izquierdo delimitador_derecho
+{:
+    Generador.gc(Generador.MIENTRAS_SIN,null,null,null);
+:}
+;
+//==============================================================================
+
+
+
+
+//==============================================================================
+operador_logico ::= 
+igual:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+diferente_que:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+mayor_igual_que:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+igual_que:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+menor_que:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+mayor_que:o
+{:VariablesEnsamblador.opLog=o;:}
+|
+menor_igual_que:o
+{:VariablesEnsamblador.opLog=o;:}
+;
+//==============================================================================
+
+
+/*---------------3ra Area: Reglas Semanticas---------------------------*/
+

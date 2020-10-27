@@ -1,0 +1,34 @@
+clase Circuit{
+	rueda n1,n2,n3,n4;
+	base b1;
+	sensorProximidad sp1;
+	vel=3;
+	inicio{
+		si(1==1){
+			vel=5;
+			avanzar(vel);	
+		}
+		sino{
+			vel=1;
+		}
+		apagarVSort();
+		girarIzquierda();
+		girarIzquierda();
+		subirBase();
+		avanzar(vel);
+		apagarVSort();
+		bajarBase();
+		girarDerecha();
+		avanzar(4);
+		girarDerecha();
+		avanzar(vel);
+		girarIzquierda();
+		girarIzquierda();
+		girarIzquierda();
+		girarIzquierda();
+		vel=2;
+		avanzar(vel);
+		reversa(vel);
+	}
+}
+

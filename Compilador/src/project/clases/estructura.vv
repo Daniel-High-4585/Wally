@@ -1,0 +1,8 @@
+clase Circuit{
+	rueda n1,n2,n3,n4;
+	base b1;
+	sensorProximidad sp1;
+	inicio{
+		
+	}
+}
