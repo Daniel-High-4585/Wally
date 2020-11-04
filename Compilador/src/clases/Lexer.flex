@@ -34,9 +34,9 @@ C=[\"]+
                     System.out.println("Reconoció "+yytext()+" separador"); 
                     return new Symbol(Simbolos.separador,               yycolumn, yyline, yytext());}
 
-<YYINITIAL> "." {   lexeme = "punto";
-                    System.out.println("Reconoció "+yytext()+" punto"); 
-                    return new Symbol(Simbolos.punto,                   yycolumn, yyline, yytext());}
+<YYINITIAL> "." {   lexeme = "point";
+                    System.out.println("Reconoció "+yytext()+" point"); 
+                    return new Symbol(Simbolos.point,                   yycolumn, yyline, yytext());}
 
 <YYINITIAL> "==" {   lexeme="igual_que";
                     System.out.println("Reconoció "+yytext()+" igual_que"); 
@@ -94,11 +94,11 @@ C=[\"]+
                     System.out.println("Reconoció "+yytext()+" division"); 
                     return new Symbol(Simbolos.division,                yycolumn, yyline, yytext());}
 
-<YYINITIAL> "{" {   lexeme = "delimitador_izquierdo";
-                    System.out.println("Reconoció "+yytext()+" delimitador_izquierdo"); 
+<YYINITIAL> "{" {   lexeme = "delimIzq";
+                    System.out.println("Reconoció "+yytext()+" delimIzq"); 
                     if(Editor.estructura_si>0)
                     Editor.elementosPila.add("{");
-                    return new Symbol(Simbolos.delimitador_izquierdo,   yycolumn, yyline, yytext());}
+                    return new Symbol(Simbolos.delimIzq,   yycolumn, yyline, yytext());}
 
 <YYINITIAL> "}" {   lexeme = "delimitador_derecho";
                     System.out.println("Reconoció "+yytext()+" delimitador_derecho"); 
@@ -139,9 +139,9 @@ C=[\"]+
                     System.out.println("Reconoció "+yytext()+" inicio"); 
                     return new Symbol(Simbolos.inicio,               yycolumn, yyline, yytext());}
 
-<YYINITIAL> funcion {   lexeme="funcion";
-                    System.out.println("Reconoció "+yytext()+" funcion"); 
-                    return new Symbol(Simbolos.funcion,               yycolumn, yyline, yytext());}
+<YYINITIAL> tareaRobot {   lexeme="tareaRobot";
+                    System.out.println("Reconoció "+yytext()+" tareaRobot"); 
+                    return new Symbol(Simbolos.tareaRobot,               yycolumn, yyline, yytext());}
 
 <YYINITIAL> si {   lexeme="si";
                     System.out.println("Reconoció "+yytext()+" si"); 
@@ -234,7 +234,7 @@ if(Editor.estructura_si>0)
                     return new Symbol(Simbolos.bajarBase,               yycolumn, yyline, yytext());
 }
 
-<YYINITIAL> avanzarRueda {   lexeme="girarIzquierda";
+<YYINITIAL> avanzarRobot {   lexeme="girarIzquierda";
                     System.out.println("Reconoció "+yytext()+" girarIzquierda"); 
 if(Editor.estructura_si>0)
                         {
@@ -244,14 +244,16 @@ if(Editor.estructura_si>0)
 
 }
 
-<YYINITIAL> espera {   lexeme="espera";
-                    System.out.println("Reconoció "+yytext()+" espera"); 
+
+<YYINITIAL> wait {   lexeme="wait";
+                    System.out.println("Reconoció "+yytext()+" wait"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
                         }
-                    return new Symbol(Simbolos.espera,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.wait,               yycolumn, yyline, yytext());
 }
+
 
 <YYINITIAL> 
             verdadero |
