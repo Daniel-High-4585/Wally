@@ -21,15 +21,15 @@ public class Simbolos {
   public static final int reservada = 39;
   public static final int igual_que = 20;
   public static final int multiplicacion = 5;
-  public static final int inicio = 2;
-  public static final int encenderVSort = 24;
-  public static final int apagarVSort = 25;
+  public static final int comienzo = 2;
+  public static final int encenderWALLY = 24;
+  public static final int apagarWALLY = 25;
   public static final int si = 14;
-  public static final int girarIzquierda = 28;
+  public static final int rotarIzquierda = 28;
   public static final int mientras = 16;
   public static final int menor_que = 21;
   public static final int base = 36;
-  public static final int girarDerecha = 29;
+  public static final int rotarDerecha = 29;
   public static final int Cadena = 42;
   public static final int rueda = 34;
   public static final int EOF = 0;
@@ -57,7 +57,7 @@ public class Simbolos {
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
-  "inicio",
+  "comienzo",
   "suma",
   "resta",
   "multiplicacion",
@@ -79,12 +79,12 @@ public class Simbolos {
   "menor_que",
   "mayor_que",
   "menor_igual_que",
-  "encenderVSort",
-  "apagarVSort",
+  "encenderWALLY",
+  "apagarWALLY",
   "avanzar",
   "reversa",
-  "girarIzquierda",
-  "girarDerecha",
+  "rotarIzquierda",
+  "rotarDerecha",
   "subirBase",
   "bajarBase",
   "avanzarRueda",

@@ -135,9 +135,9 @@ C=[\"]+
                     System.out.println("Reconoció "+yytext()+" sensorProximidad"); 
                     return new Symbol(Simbolos.sensorProximidad,               yycolumn, yyline, yytext());}
 
-<YYINITIAL> inicio {   lexeme="inicio";
-                    System.out.println("Reconoció "+yytext()+" inicio"); 
-                    return new Symbol(Simbolos.inicio,               yycolumn, yyline, yytext());}
+<YYINITIAL> comienzo {   lexeme="comienzo";
+                    System.out.println("Reconoció "+yytext()+" comienzo"); 
+                    return new Symbol(Simbolos.comienzo,               yycolumn, yyline, yytext());}
 
 <YYINITIAL> funcion {   lexeme="funcion";
                     System.out.println("Reconoció "+yytext()+" funcion"); 
@@ -170,21 +170,21 @@ if(Editor.estructura_si>0)
                         }
                     return new Symbol(Simbolos.avanzar,               yycolumn, yyline, yytext());}
             
-<YYINITIAL> encenderVSort {   lexeme="encenderVSort";
-                    System.out.println("Reconoció "+yytext()+" encenderVSort"); 
+<YYINITIAL> encenderWALLY {   lexeme="encenderWALLY";
+                    System.out.println("Reconoció "+yytext()+" encenderWALLY"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
                         }
-                    return new Symbol(Simbolos.encenderVSort,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.encenderWALLY,               yycolumn, yyline, yytext());
 }
 
-<YYINITIAL> apagarVSort {   lexeme="apagarVSort";
-                    System.out.println("Reconoció "+yytext()+" apagarVSort"); 
+<YYINITIAL> apagarWALLY {   lexeme="apagarWALLY";
+                    System.out.println("Reconoció "+yytext()+" apagarWALLY"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
-                    return new Symbol(Simbolos.apagarVSort,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.apagarWALLY,               yycolumn, yyline, yytext());
                         }
 }
 
@@ -197,22 +197,22 @@ if(Editor.estructura_si>0)
                     return new Symbol(Simbolos.reversa,               yycolumn, yyline, yytext());
 }
 
-<YYINITIAL> girarIzquierda {   lexeme="girarIzquierda";
-                    System.out.println("Reconoció "+yytext()+" girarIzquierda"); 
+<YYINITIAL> rotarIzquierda {   lexeme="rotarIzquierda";
+                    System.out.println("Reconoció "+yytext()+" rotarIzquierda"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
                         }
-                    return new Symbol(Simbolos.girarIzquierda,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.rotarIzquierda,               yycolumn, yyline, yytext());
 }
 
-<YYINITIAL> girarDerecha {   lexeme="girarDerecha";
-                    System.out.println("Reconoció "+yytext()+" girarDerecha"); 
+<YYINITIAL> rotarDerecha {   lexeme="rotarDerecha";
+                    System.out.println("Reconoció "+yytext()+" rotarDerecha"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
                         }
-                    return new Symbol(Simbolos.girarDerecha,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.rotarDerecha,               yycolumn, yyline, yytext());
 
 }
 
@@ -234,13 +234,13 @@ if(Editor.estructura_si>0)
                     return new Symbol(Simbolos.bajarBase,               yycolumn, yyline, yytext());
 }
 
-<YYINITIAL> avanzarRueda {   lexeme="girarIzquierda";
-                    System.out.println("Reconoció "+yytext()+" girarIzquierda"); 
+<YYINITIAL> avanzarRueda {   lexeme="rotarIzquierda";
+                    System.out.println("Reconoció "+yytext()+" rotarIzquierda"); 
 if(Editor.estructura_si>0)
                         {
                             Editor.elementosPila.add("cuerpo");   
                         }
-                    return new Symbol(Simbolos.girarIzquierda,               yycolumn, yyline, yytext());
+                    return new Symbol(Simbolos.rotarIzquierda,               yycolumn, yyline, yytext());
 
 }
 

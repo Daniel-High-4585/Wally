@@ -60,33 +60,33 @@ action code
 /*---------------2da Area: Declaraciones---------------------------*/
 
 //------------> declaración de terminales
-terminal inicio;
+terminal comienzo;
 terminal suma,resta,multiplicacion,division;
 terminal delimitador_izquierdo,delimitador_derecho,parentesis_abierto,parentesis_cerrado;
 terminal separador,punto,fin_linea;
 terminal si,sino,mientras;
 terminal String igual,diferente_que,mayor_igual_que,igual_que,menor_que,mayor_que,menor_igual_que;
-terminal encenderVSort,apagarVSort,avanzar,reversa,girarIzquierda,girarDerecha,subirBase,bajarBase,avanzarRueda,espera;
+terminal encenderWALLY,apagarWALLY,avanzar,reversa,rotarIzquierda,rotarDerecha,subirBase,bajarBase,avanzarRueda,espera;
 terminal rueda,sensorProximidad,base,funcion,Operacion;
 terminal String reservada, Metodo, Numero, Cadena, Identificador, Clase, presentacion;
 
 //------------> declaracion de no terminales
 
-non terminal INICIO,declaraciones,asignacion,definiciones,main,expresiones,ciclo,
+non terminal COMIENZO,declaraciones,asignacion,definiciones,main,expresiones,ciclo,
                 condicion_si,condicion,operador_logico,control_si,control_sino,control_mientras,cuerpo,funcion_principal;
 non terminal metodo,metodo_definicion,metodo_llamada;
 non terminal variable_def,variables_def,asignacion_def;
 non terminal variable,variables,sentencia,sentencias ;
-non terminal cuerpo_parametro,mencenderVSort,mapagarVSort,mavanzarCon,mavanzarSin,mreversaCon,mreversaSin,mgirarIzquierda,mgirarDerecha,msubirBase,mbajarBase,mavanzarRueda,mespera;
+non terminal cuerpo_parametro,mencenderWALLY,mapagarWALLY,mavanzarCon,mavanzarSin,mreversaCon,mreversaSin,mrotarIzquierda,mrotarDerecha,msubirBase,mbajarBase,mavanzarRueda,mespera;
 non terminal parametros;
 non terminal defRueda,defBase,defSensor;
 //------------> precedencia de menor a mayor
 //precedence left suma,resta;
 //precedence left multiplicacion,division
 
-start with INICIO;
+start with COMIENZO;
 
-INICIO ::= reservada Clase delimitador_izquierdo declaraciones main delimitador_derecho
+COMIENZO ::= reservada Clase delimitador_izquierdo declaraciones main delimitador_derecho
 {:
     Generador.gc(Generador.FIN,null,null,null); 
 :} 
@@ -104,54 +104,54 @@ declaraciones ::= variables_def definiciones|
 definiciones  ::= defRueda defBase defSensor 
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo :\n\n	goto comienzo\n\n");
 :}
 |
 defRueda defSensor defBase 
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo :\n\n	goto comienzo\n\n");
 :}
 |
 defBase defSensor defRueda {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo:\n\n	goto comienzo\n\n");
 :}
 |
 defBase defRueda defSensor {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo:\n\n	goto comienzo\n\n");
 :}
 |
 defSensor defRueda defBase 
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo: \n\n	goto comienzo\n\n");
 :}
 |
 defSensor defBase defRueda 
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo:\n\n	goto comienzo\n\n");
 :}
 |
 defBase defRueda
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo:\n\n	goto comienzo\n\n");
 :}
 |
 defRueda defBase
 {:
 Generador.gc(Generador.DECLARACION_COMPLETA,null,null,null);
-Editor.txtEnsamblador.append("\ninicio:\n\n	goto inicio\n\n");
+Editor.txtEnsamblador.append("\n comienzo:\n\n	goto comienzo\n\n");
 :}
 |error fin_linea
 |error main
 ;
 
 
-main ::= inicio delimitador_izquierdo cuerpo delimitador_derecho
+main ::= comienzo delimitador_izquierdo cuerpo delimitador_derecho
 {:
     Generador.gc(Generador.MAIN,null,null,null);
 :}
@@ -817,10 +817,10 @@ sentencia ::= metodo_definicion | metodo_llamada | asignacion | control_mientras
 //==============================================================================
 
 
-funcion_principal ::= mencenderVSort|mapagarVSort|mespera|mavanzarSin|mavanzarCon|mreversaSin|mreversaCon|mgirarIzquierda|mgirarDerecha|msubirBase|mbajarBase|mavanzarRueda
+funcion_principal ::= mencenderWALLY|mapagarWALLY|mespera|mavanzarSin|mavanzarCon|mreversaSin|mreversaCon|mrotarIzquierda|mrotarDerecha|msubirBase|mbajarBase|mavanzarRueda
 ;
 
-mencenderVSort ::= encenderVSort parentesis_abierto parentesis_cerrado fin_linea 
+mencenderWALLY ::= encenderWALLY parentesis_abierto parentesis_cerrado fin_linea 
 {:
 /*
     if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
@@ -833,7 +833,7 @@ mencenderVSort ::= encenderVSort parentesis_abierto parentesis_cerrado fin_linea
     if(VariablesEnsamblador.mientras_activado!=0){
         //WHILE
     }
-    Identificador identificador = new Identificador("EncenderVSort","palabra_reservada","llamada","null");
+    Identificador identificador = new Identificador("EncenderWALLY","palabra_reservada","llamada","null");
     sintactico.TablaId.add(identificador);
     if(Editor.encender==0){
         Generador.gc(Generador.ENCENDER,null, null, VariablesEnsamblador.varSi);
@@ -842,7 +842,7 @@ mencenderVSort ::= encenderVSort parentesis_abierto parentesis_cerrado fin_linea
 :}
 ; 
 
-mapagarVSort ::= apagarVSort parentesis_abierto parentesis_cerrado fin_linea {: 
+mapagarWALLY ::= apagarWALLY parentesis_abierto parentesis_cerrado fin_linea {: 
     if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
         VariablesEnsamblador.llamadas.add("call apagar");
         VariablesEnsamblador.llamadas.add("call espera");
@@ -863,7 +863,7 @@ mapagarVSort ::= apagarVSort parentesis_abierto parentesis_cerrado fin_linea {:
         //WHILE
     }
 
-    Identificador identificador = new Identificador("ApagarVSort","palabra_reservada","llamada","null");
+    Identificador identificador = new Identificador("apagarWALLY","palabra_reservada","llamada","null");
     sintactico.TablaId.add(identificador);
     if(Editor.espera==0){
         Generador.gc(Generador.ESPERA,null,null,null);
@@ -1080,7 +1080,7 @@ mreversaCon ::= reversa parentesis_abierto cuerpo_parametro parentesis_cerrado f
         Editor.espera++;
     }
 :};
-mgirarIzquierda ::= girarIzquierda parentesis_abierto parentesis_cerrado fin_linea {:
+mrotarIzquierda ::= rotarIzquierda parentesis_abierto parentesis_cerrado fin_linea {:
     if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
         VariablesEnsamblador.llamadas.add("call apagar");
         VariablesEnsamblador.llamadas.add("call espera");
@@ -1102,7 +1102,7 @@ mgirarIzquierda ::= girarIzquierda parentesis_abierto parentesis_cerrado fin_lin
     if(VariablesEnsamblador.mientras_activado!=0){
         //WHILE
     }
-    Identificador identificador = new Identificador("GirarIzquierda","palabra_reservada","llamada","null");
+    Identificador identificador = new Identificador("RotarIzquierda","palabra_reservada","llamada","null");
     sintactico.TablaId.add(identificador);
     if(Editor.espera==0){
         Generador.gc(Generador.ESPERA,null,null,null);
@@ -1112,13 +1112,13 @@ mgirarIzquierda ::= girarIzquierda parentesis_abierto parentesis_cerrado fin_lin
         Generador.gc(Generador.APAGAR,null,null,null); 
         Editor.apagar++;
     }
-    if(Editor.girarI==0){
-        Generador.gc(Generador.GIRAR_IZQUIERDA,null,null,null);
-        Editor.girarI++;
+    if(Editor.rotarI==0){
+        Generador.gc(Generador.ROTAR_IZQUIERDA,null,null,null);
+        Editor.rotarI++;
     }
 :};
 
-mgirarDerecha ::= girarDerecha parentesis_abierto parentesis_cerrado fin_linea {:
+mrotarDerecha ::= rotarDerecha parentesis_abierto parentesis_cerrado fin_linea {:
     if(VariablesEnsamblador.si_activado==0&&VariablesEnsamblador.mientras_activado==0){
         VariablesEnsamblador.llamadas.add("call apagar");
         VariablesEnsamblador.llamadas.add("call espera");
@@ -1140,7 +1140,7 @@ mgirarDerecha ::= girarDerecha parentesis_abierto parentesis_cerrado fin_linea {
     if(VariablesEnsamblador.mientras_activado!=0){
         //WHILE
     }
-    Identificador identificador = new Identificador("GirarDerecha","palabra_reservada","llamada","null");
+    Identificador identificador = new Identificador("RotarDerecha","palabra_reservada","llamada","null");
     sintactico.TablaId.add(identificador);
     if(Editor.apagar==0){
         Generador.gc(Generador.APAGAR,null,null,null); 
@@ -1150,9 +1150,9 @@ mgirarDerecha ::= girarDerecha parentesis_abierto parentesis_cerrado fin_linea {
         Generador.gc(Generador.ESPERA,null,null,null);
         Editor.espera++;
     }
-    if(Editor.girarD==0){
-        Generador.gc(Generador.GIRAR_DERECHA,null,null,null);
-        Editor.girarD++;
+    if(Editor.rotarD==0){
+        Generador.gc(Generador.ROTAR_DERECHA,null,null,null);
+        Editor.rotarD++;
     }
  :};
 
